@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Incidencias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .historial-container { max-height: 400px; overflow-y: auto; }
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #3498db;
+            border-radius: 50%; width: 24px; height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 sm:p-6 md:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white shadow-lg rounded-xl p-6 sm:p-8 md:p-10">
+        <header class="mb-8 border-b pb-4 border-gray-200">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Control de Incidencias</h1>
+            <p class="text-gray-600">Busca un viaje para visualizar su historial y registrar nueva atencion.</p>
+        </header>
+
+        <section class="bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200 mb-8">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-gray-700"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Buscar Viaje
+            </h2>
+            <div id="search-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                    <label for="search-by" class="block text-sm font-medium text-gray-700 mb-1">Buscar por</label>
+                    <select id="search-by" name="search-by" class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="n_viaje">Nº Viaje</option>
+                        <option value="n_documento">Nº Documento</option>
+                        <option value="n_pedido">Nº Pedido</option>
+                        <option value="n_entrega">Nº Entrega</option>
+                    </select>
+                </div>
+                <div id="dt-otm-container">
+                    <label for="dt-otm-select" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Viaje</label>
+                    <select id="dt-otm-select" name="dt-otm-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">Seleccione tipo</option>
+                        <option value="DT">DT</option>
+                        <option value="OTM">OTM</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="search-value" class="block text-sm font-medium text-gray-700 mb-1">Criterio de Busqueda</label>
+                    <input type="text" id="search-value" name="search-value" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="Ingrese el valor a buscar...">
+                </div>
+                <button id="search-button" class="w-full md:w-auto flex justify-center items-center bg-blue-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:bg-blue-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Buscar
+                    <div id="search-btn-loader" class="loader ml-2 hidden"></div>
+                </button>
+            </div>
+            <div id="search-feedback" class="mt-4 text-center"></div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+            <div id="tripInfoSection" class="lg:col-span-2 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200">
+                <h2 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-blue-600"><path d="M19 18h-2a4 4 0 0 0-4-4h-2a4 4 0 0 0-4 4H5"/><path d="M5 18v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="m21.44 11.05-1.28-1.27a1 1 0 0 0-1.42 0l-9.19 9.19a1 1 0 0 0 0 1.41l1.28 1.28a1 1 0 0 0 1.41 0l9.2-9.19a1 1 0 0 0 0-1.42Z"/></svg>
+                    Información de Viaje
+                </h2>
+                <div id="trip-info-content" class="space-y-4 hidden">
+                    <div class="info-item"><p class="text-sm font-medium text-gray-500">Fecha de Salida</p><p id="info-fecha-salida" class="text-md font-semibold text-gray-900">-</p></div>
+                    <div class="info-item"><p class="text-sm font-medium text-gray-500">Placa</p><p id="info-placa" class="text-md font-semibold text-gray-900">-</p></div>
+                    <div class="info-item"><p class="text-sm font-medium text-gray-500">Empresa de Transporte</p><p id="info-transporte" class="text-md font-semibold text-gray-900">-</p></div>
+                    <div class="info-item"><p class="text-sm font-medium text-gray-500">Destino</p><p id="info-destino-viaje" class="text-md font-semibold text-gray-900">-</p></div>
+                </div>
+                <div id="trip-info-placeholder" class="text-center py-8 text-gray-500">
+                    <p>Busque y seleccione un viaje para ver su información.</p>
+                </div>
+                <div id="trip-info-loader" class="flex justify-center items-center py-4 hidden">
+                    <div class="loader"></div>
+                    <span class="ml-2 text-gray-600">Cargando información...</span>
+                </div>
+            </div>
+
+            <fieldset id="attention-fieldset" class="lg:col-span-3 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200" disabled>
+                 <h2 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-green-600"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Registrar Atención
+                </h2>
+                <form id="attention-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="tipo-registro" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Registro</label>
+                            <select id="tipo-registro" name="tipo_registro" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
+                                <option value="">Seleccione un tipo</option>
+                                <option value="Incidencia">Incidencia</option>
+                                <option value="Atención">Atención</option>
+                                <option value="Seguimiento">Seguimiento</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+                            <select id="motivo" name="motivo" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
+                                <option value="">Seleccione un motivo</option>
+                                <option value="Anulado">Anulado</option><option value="Doble Summary">Doble Summary</option><option value="Doc.En transito">Doc.En transito</option><option value="Entrega Incompleta">Entrega Incompleta</option><option value="Error Datos de Transp.">Error Datos de Transp.</option><option value="Error Escaneo">Error Escaneo</option><option value="Error Sistema">Error Sistema</option><option value="Factura Retenida">Factura Retenida</option><option value="Incidencia en Viaje">Incidencia en Viaje</option><option value="Logist.Inv.">Logist.Inv.</option><option value="No despachado">No despachado</option><option value="No se ubica en Sistema">No se ubica en Sistema</option><option value="Nota de Credito">Nota de Credito</option><option value="Recojo Incompleto">Recojo Incompleto</option><option value="Reeditado En Proceso">Reeditado En Proceso</option><option value="Regularizar Fact.">Regularizar Fact.</option><option value="Siniestro">Siniestro</option><option value="Sistema">Sistema</option><option value="Traslado Interno">Traslado Interno</option><option value="Devoluciones par">Devoluciones par</option><option value="devo total">devo total</option><option value="reclamos">reclamos</option><option value="Resolución">Resolución</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="area-responsable" class="block text-sm font-medium text-gray-700 mb-1">Área Responsable</label>
+                            <select id="area-responsable" name="area_responsable" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
+                                <option value="">Seleccione un área</option>
+                                <option value="IT">IT</option><option value="Proyectos">Proyectos</option><option value="Despacho FP">Despacho FP</option><option value="Despacho QS">Despacho QS</option><option value="Programación">Programación</option><option value="Ejecución">Ejecución</option><option value="Liquidaciones">Liquidaciones</option><option value="Supplay te ayuda">Supplay te ayuda</option><option value="APP PH">APP PH</option><option value="Cliente">Cliente</option><option value="Transportista">Transportista</option><option value="Log. Inversa">Log. Inversa</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="liquidador" class="block text-sm font-medium text-gray-700 mb-1">Registrado Por</label>
+                            <select id="liquidador" name="liquidador" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
+                                <option value="">Seleccionar</option>
+                                <option value="Luis Rios">Luis Rios</option><option value="Joel Saenz">Joel Saenz</option><option value="Darwin Quinchuya">Darwin Quinchuya</option><option value="Wilder Fabian">Wilder Fabian</option><option value="Dirk Rivera">Dirk Rivera</option><option value="Adrian Vargas">Adrian Vargas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="detalle" class="block text-sm font-medium text-gray-700 mb-1">Más Detalle</label>
+                        <textarea id="detalle" name="detalle" rows="4" class="w-full p-2 border border-gray-300 rounded-md shadow-sm"></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" id="submit-attention" class="w-full flex justify-center items-center bg-green-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:bg-green-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            <span id="submit-btn-text">Registrar</span>
+                            <div id="submit-btn-loader" class="loader ml-2 hidden"></div>
+                        </button>
+                    </div>
+                </form>
+                <div id="form-feedback" class="mt-4 text-center"></div>
+            </fieldset>
+        </div>
+
+        <section id="historySection" class="bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200 hidden">
+             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
+                <h2 class="text-xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-purple-600"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    Historial de Atención
+                </h2>
+                <div id="historyLoader" class="flex items-center hidden">
+                    <div class="loader"></div>
+                    <span class="ml-2 text-gray-600">Cargando historial...</span>
+                </div>
+            </div>
+            <div class="historial-container">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">Fec.Registro</th>
+                                <th scope="col" class="px-4 py-3">Tip.Registro</th>
+                                <th scope="col" class="px-4 py-3">Motivo</th>
+                                <th scope="col" class="px-4 py-3">Resp.Atención</th>
+                                <th scope="col" class="px-4 py-3">Registrado Por</th>
+                                <th scope="col" class="px-4 py-3">Estado</th>
+                                <th scope="col" class="px-4 py-3">Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+             <div id="empty-history" class="text-center py-8 text-gray-500 hidden">
+                <p>No hay atenciones registradas para este viaje.</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // =================================================================================
+            // CONFIGURACIÓN
+            // =================================================================================
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIIctcnddpZ_rKt40IJa7mzQ53vnXCnYSx9Q_pZP6Je14PSdaQJsuE0vfJWYqiEMh7TA/exec';
+            const TRIPS_SHEET_NAME = 'BDviajes';
+            const HISTORY_READ_SHEET_NAME = 'Historial';
+            const HISTORY_WRITE_SHEET_NAME = 'RegistroAtencion';
+
+            const COLUMNS = {
+                TRIPS: {
+                    TIPO_VIAJE: 0, N_VIAJE: 1, ET: 2, PLACA: 3, FECHA_SALIDA: 4, SOCIEDAD: 5, DESTINO_VIAJE: 6
+                },
+                HISTORY: {
+                    FEC_REGISTRO: 0,
+                    TIP_VIAJE: 1,
+                    NO_VIAJE: 2,
+                    TIP_REGISTRO: 3,
+                    MOTIVO: 4,
+                    RESP_ATENCION: 5,
+                    REGISTRADO_POR: 6,
+                    ESTADO: 7,
+                    DETALLE: 8,
+                    N_DOCUMENTO: 9,
+                    N_PEDIDO: 10,
+                    N_ENTREGA: 11
+                }
+            };
+
+            let currentTrip = null;
+
+            // =================================================================================
+            // SELECCIÓN DE ELEMENTOS DEL DOM
+            // =================================================================================
+            const searchBySelect = document.getElementById('search-by'), searchValueInput = document.getElementById('search-value'),
+                  searchButton = document.getElementById('search-button'), searchBtnLoader = document.getElementById('search-btn-loader'),
+                  searchFeedback = document.getElementById('search-feedback'), dtOtmContainer = document.getElementById('dt-otm-container'),
+                  dtOtmSelect = document.getElementById('dt-otm-select'), 
+                  tripInfoContent = document.getElementById('trip-info-content'),
+                  infoFechaSalida = document.getElementById('info-fecha-salida'),
+                  infoPlaca = document.getElementById('info-placa'), infoTransporte = document.getElementById('info-transporte'),
+                  infoDestinoViaje = document.getElementById('info-destino-viaje'), 
+                  tripInfoPlaceholder = document.getElementById('trip-info-placeholder'), 
+                  tripInfoLoader = document.getElementById('trip-info-loader'),
+                  attentionFieldset = document.getElementById('attention-fieldset'), attentionForm = document.getElementById('attention-form'),
+                  detalleTextarea = document.getElementById('detalle'),
+                  submitAttentionButton = document.getElementById('submit-attention'),
+                  submitBtnLoader = document.getElementById('submit-btn-loader'), formFeedback = document.getElementById('form-feedback'),
+                  historySection = document.getElementById('historySection'), historyTableBody = document.getElementById('history-table-body'),
+                  historyLoader = document.getElementById('historyLoader'), emptyHistoryMessage = document.getElementById('empty-history');
+
+            // =================================================================================
+            // FUNCIONES DE AYUDA (Helpers)
+            // =================================================================================
+            function showFeedback(message, type = 'info', element = searchFeedback, duration = 5000) {
+                const colorClasses = { info: 'text-gray-500', success: 'text-green-600 font-semibold', error: 'text-red-500 font-semibold' };
+                let content = type === 'loading'
+                    ? `<div class="flex items-center justify-center"><div class="loader mr-2"></div><p>${message}</p></div>`
+                    : `<div class="${colorClasses[type] || 'text-gray-500'}">${message}</div>`;
+                element.innerHTML = content;
+                element.classList.remove('hidden');
+                if (type !== 'loading') {
+                    setTimeout(() => { element.classList.add('hidden'); element.innerHTML = ''; }, duration);
+                }
+            }
+
+            function setButtonLoading(button, loader, isLoading) {
+                button.disabled = isLoading;
+                loader.classList.toggle('hidden', !isLoading);
+            }
+
+            function parseCustomDate(dateString) {
+                if (!dateString || typeof dateString !== 'string') return null;
+                const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{2,4})\s(\d{2}):(\d{2})/);
+                if (!parts) {
+                    const d = new Date(dateString);
+                    return isNaN(d) ? null : d;
+                };
+                const year = parts[3].length === 2 ? `20${parts[3]}` : parts[3];
+                return new Date(year, parts[2] - 1, parts[1], parts[4], parts[5]);
+            }
+
+            function formatDisplayDate(dateString) {
+                if (!dateString) return '-';
+                const date = parseCustomDate(dateString);
+                if (!date) return dateString;
+
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = String(date.getFullYear()).slice(-2);
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                
+                return `${day}/${month}/${year} ${hours}:${minutes}`;
+            }
+
+            // =================================================================================
+            // LÓGICA DE DATOS PRINCIPAL
+            // =================================================================================
+            async function fetchSheetData(sheetName, params = {}) {
+                const urlParams = new URLSearchParams({ sheetName, ...params });
+                try {
+                    const response = await fetch(`${APPS_SCRIPT_URL}?${urlParams.toString()}`);
+                    if (!response.ok) throw new Error(`Error de red: ${response.statusText}`);
+                    const data = await response.json();
+                    if (data.result === 'success') return data.data;
+                    throw new Error(data.error || 'Error desconocido en Apps Script');
+                } catch (error) {
+                    console.error(`Error al obtener datos de la hoja "${sheetName}":`, error);
+                    throw error;
+                }
+            }
+
+            async function findTripAndHistory(searchByKey, searchValue, tripType) {
+                if (searchByKey === 'n_viaje') {
+                    const [tripResult, historyResult] = await Promise.all([
+                        fetchSheetData(TRIPS_SHEET_NAME, { queryType: 'n_viaje', searchValue, tipViaje: tripType }),
+                        fetchSheetData(HISTORY_READ_SHEET_NAME, { queryType: 'n_viaje', searchValue, tipViaje: tripType })
+                    ]);
+                    return { tripData: tripResult.length > 0 ? tripResult[0] : null, historyData: historyResult };
+                } else {
+                    const historyForCriteria = await fetchSheetData(HISTORY_READ_SHEET_NAME, { queryType: searchByKey, searchValue });
+                    if (historyForCriteria.length === 0) return { tripData: null, historyData: [] };
+                    
+                    const firstRecord = historyForCriteria[0];
+                    const tripNumber = firstRecord[COLUMNS.HISTORY.NO_VIAJE];
+                    const foundTripType = firstRecord[COLUMNS.HISTORY.TIP_VIAJE];
+
+                    if (!tripNumber || !foundTripType) return { tripData: null, historyData: historyForCriteria };
+
+                    const [tripResult, fullHistoryResult] = await Promise.all([
+                        fetchSheetData(TRIPS_SHEET_NAME, { queryType: 'n_viaje', searchValue: tripNumber, tipViaje: foundTripType }),
+                        fetchSheetData(HISTORY_READ_SHEET_NAME, { queryType: 'n_viaje', searchValue: tripNumber, tipViaje: foundTripType })
+                    ]);
+                    return { tripData: tripResult.length > 0 ? tripResult[0] : null, historyData: fullHistoryResult };
+                }
+            }
+
+            // =================================================================================
+            // MANIPULACIÓN DE LA INTERFAZ (UI)
+            // =================================================================================
+            function resetUI() {
+                currentTrip = null;
+                attentionForm.reset();
+                attentionFieldset.disabled = true;
+                tripInfoContent.classList.add('hidden');
+                tripInfoPlaceholder.classList.remove('hidden');
+                historySection.classList.add('hidden');
+                historyTableBody.innerHTML = '';
+                [searchFeedback, formFeedback].forEach(el => { el.classList.add('hidden'); el.innerHTML = ''; });
+            }
+
+            function updateTripInfoPanel(tripObject) {
+                tripInfoLoader.classList.add('hidden');
+                tripInfoPlaceholder.classList.add('hidden');
+                tripInfoContent.classList.remove('hidden');
+
+                if (tripObject && tripObject.fecha_salida) {
+                    const formattedDate = new Date(tripObject.fecha_salida).toLocaleDateString('es-ES');
+                    infoFechaSalida.textContent = formattedDate;
+                    infoPlaca.textContent = tripObject.placa || '-';
+                    infoTransporte.textContent = tripObject.et || '-';
+                    infoDestinoViaje.textContent = tripObject.destino_viaje || '-';
+                } else {
+                    infoFechaSalida.textContent = '-';
+                    infoPlaca.textContent = '-';
+                    infoTransporte.textContent = '-';
+                    infoDestinoViaje.textContent = '-';
+                }
+            }
+
+            function updateHistoryPanel(historyArray) {
+                historyLoader.classList.add('hidden');
+                historyTableBody.innerHTML = '';
+                historySection.classList.remove('hidden');
+                const hasHistory = historyArray && historyArray.length > 0;
+                emptyHistoryMessage.classList.toggle('hidden', hasHistory);
+
+                if (hasHistory) {
+                    historyArray.sort((a, b) => {
+                        const dateA = parseCustomDate(a[COLUMNS.HISTORY.FEC_REGISTRO]);
+                        const dateB = parseCustomDate(b[COLUMNS.HISTORY.FEC_REGISTRO]);
+                        if (!dateA) return 1;
+                        if (!dateB) return -1;
+                        return dateB - dateA;
+                    });
+                    historyArray.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'bg-white border-b hover:bg-gray-50';
+                        tr.innerHTML = `
+                            <td class="px-4 py-4">${formatDisplayDate(row[COLUMNS.HISTORY.FEC_REGISTRO])}</td>
+                            <td class="px-4 py-4 font-medium">${row[COLUMNS.HISTORY.TIP_REGISTRO] || '-'}</td>
+                            <td class="px-4 py-4">${row[COLUMNS.HISTORY.MOTIVO] || '-'}</td>
+                            <td class="px-4 py-4">${row[COLUMNS.HISTORY.RESP_ATENCION] || '-'}</td>
+                            <td class="px-4 py-4">${row[COLUMNS.HISTORY.REGISTRADO_POR] || '-'}</td>
+                            <td class="px-4 py-4">${row[COLUMNS.HISTORY.ESTADO] || '-'}</td>
+                            <td class="px-4 py-4 text-gray-500">${row[COLUMNS.HISTORY.DETALLE] || '-'}</td>
+                        `;
+                        historyTableBody.appendChild(tr);
+                    });
+                }
+            }
+            
+            function arrayToTripObject(tripArray) {
+                if (!tripArray || tripArray.length === 0) return null;
+                const C = COLUMNS.TRIPS;
+                return {
+                    tipo_viaje: tripArray[C.TIPO_VIAJE], n_viaje: tripArray[C.N_VIAJE], et: tripArray[C.ET],
+                    placa: tripArray[C.PLACA], fecha_salida: tripArray[C.FECHA_SALIDA], sociedad: tripArray[C.SOCIEDAD],
+                    destino_viaje: tripArray[C.DESTINO_VIAJE]
+                };
+            }
+
+            // =================================================================================
+            // MANEJADORES DE EVENTOS
+            // =================================================================================
+            async function handleSearchClick() {
+                const searchByKey = searchBySelect.value;
+                const searchValue = searchValueInput.value.trim();
+                const tripType = dtOtmSelect.value;
+
+                if (!searchValue) { return showFeedback('Por favor, ingrese un criterio de búsqueda.', 'error'); }
+                if (searchByKey === 'n_viaje' && !tripType) { return showFeedback('Por favor, seleccione un Tipo de Viaje (DT/OTM).', 'error'); }
+
+                resetUI();
+                setButtonLoading(searchButton, searchBtnLoader, true);
+                showFeedback('Buscando...', 'loading', searchFeedback);
+                tripInfoLoader.classList.remove('hidden');
+                historyLoader.classList.remove('hidden');
+                historySection.classList.remove('hidden');
+
+                try {
+                    const { tripData, historyData } = await findTripAndHistory(searchByKey, searchValue, tripType);
+                    
+                    currentTrip = tripData ? arrayToTripObject(tripData) : { n_viaje: searchValue, tipo_viaje: tripType };
+                    
+                    updateTripInfoPanel(currentTrip);
+                    updateHistoryPanel(historyData);
+                    attentionFieldset.disabled = !currentTrip;
+
+                    // CAMBIO: Se reinicia el valor del textarea a la plantilla por defecto cuando se habilita el formulario.
+                    if (!attentionFieldset.disabled) {
+                        detalleTextarea.value = `Comentario:\nN° Factura:\nN° Pedido:\nN° Entrega:`;
+                        detalleTextarea.classList.add('text-gray-400');
+                        detalleTextarea.classList.remove('text-gray-800');
+                    }
+
+                    if (tripData || historyData.length > 0) {
+                        showFeedback('Búsqueda completada.', 'success', searchFeedback);
+                    } else {
+                        showFeedback('No se encontraron resultados.', 'info', searchFeedback);
+                    }
+                } catch (error) {
+                    showFeedback(`Error en la búsqueda: ${error.message}`, 'error', searchFeedback);
+                    resetUI();
+                } finally {
+                    setButtonLoading(searchButton, searchBtnLoader, false);
+                    tripInfoLoader.classList.add('hidden');
+                    historyLoader.classList.add('hidden');
+                }
+            }
+
+            async function handleFormSubmit(event) {
+                event.preventDefault();
+                if (!currentTrip) { return showFeedback('Debe haber un viaje activo para registrar una atención.', 'error', formFeedback); }
+
+                setButtonLoading(submitAttentionButton, submitBtnLoader, true);
+                showFeedback('Registrando...', 'loading', formFeedback);
+
+                const formData = new FormData(attentionForm);
+                const dataForSheet = {
+                    action: 'addAttention',
+                    fecha_registro: new Date().toISOString(),
+                    ...Object.fromEntries(formData.entries()),
+                    estado: 'Abierto', // Se añade el estado por defecto
+                    n_viaje: currentTrip.n_viaje,
+                    tip_viaje: currentTrip.tipo_viaje,
+                    et: currentTrip.et || '',
+                    placa: currentTrip.placa || '',
+                    fech_salida: currentTrip.fecha_salida || ''
+                };
+                
+                try {
+                    const response = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify(dataForSheet)
+                    });
+                    const responseData = await response.json();
+                    if (responseData.result !== 'success') throw new Error(responseData.error || 'Error desconocido al guardar.');
+                    
+                    showFeedback('¡Atención registrada con éxito!', 'success', formFeedback);
+                    attentionForm.reset();
+                    detalleTextarea.value = `Comentario:\nN° Factura:\nN° Pedido:\nN° Entrega:`;
+                    detalleTextarea.classList.add('text-gray-400');
+                    detalleTextarea.classList.remove('text-gray-800');
+
+
+                    historyLoader.classList.remove('hidden');
+                    const newHistory = await fetchSheetData(HISTORY_READ_SHEET_NAME, { queryType: 'n_viaje', searchValue: currentTrip.n_viaje, tipViaje: currentTrip.tipo_viaje });
+                    updateHistoryPanel(newHistory);
+                } catch (err) {
+                    showFeedback(`Error al guardar: ${err.message}`, 'error', formFeedback);
+                } finally {
+                    setButtonLoading(submitAttentionButton, submitBtnLoader, false);
+                    historyLoader.classList.add('hidden');
+                }
+            }
+
+            searchButton.addEventListener('click', handleSearchClick);
+            attentionForm.addEventListener('submit', handleFormSubmit);
+
+            const defaultDetalleText = `Comentario:\nN° Factura:\nN° Pedido:\nN° Entrega:`;
+            detalleTextarea.value = defaultDetalleText;
+            detalleTextarea.classList.add('text-gray-400');
+
+            detalleTextarea.addEventListener('focus', () => {
+                if (detalleTextarea.value === defaultDetalleText) {
+                    detalleTextarea.value = '';
+                    detalleTextarea.classList.remove('text-gray-400');
+                    detalleTextarea.classList.add('text-gray-800');
+                }
+            });
+
+            detalleTextarea.addEventListener('blur', () => {
+                if (detalleTextarea.value.trim() === '') {
+                    detalleTextarea.value = defaultDetalleText;
+                    detalleTextarea.classList.add('text-gray-400');
+                    detalleTextarea.classList.remove('text-gray-800');
+                }
+            });
+
+        });
+    </script>
+    </div>
+</body>
+</html>

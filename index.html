@@ -4,35 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Incidencia</title>
+    <!-- Carga de Tailwind CSS para estilos rápidos y modernos -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la fuente Inter de Google Fonts para una mejor tipografía -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Estilos personalizados para la aplicación */
         body { font-family: 'Inter', sans-serif; }
         .historial-container { max-height: 400px; overflow-y: auto; }
         .loader {
-            border: 4px solid #f3f3f3; border-top: 4px solid #3498db;
-            border-radius: 50%; width: 24px; height: 24px;
+            border: 4px solid #f3f3f3; /* Gris claro */
+            border-top: 4px solid #3498db; /* Azul */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 p-4 sm:p-6 md:p-8">
 
+    <!-- Contenedor principal de la aplicación -->
     <div class="max-w-7xl mx-auto bg-white shadow-lg rounded-xl p-6 sm:p-8 md:p-10">
+        
+        <!-- Encabezado de la página -->
         <header class="mb-8 border-b pb-4 border-gray-200">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Control de Incidencias</h1>
-            <p class="text-gray-600">Busca un viaje para ver el historial y registrar nueva atencion.</p>
+            <p class="text-gray-600">Busca un viaje para ver el historial y registrar una nueva atención.</p>
         </header>
 
+        <!-- Sección de Búsqueda -->
         <section class="bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200 mb-8">
             <h2 class="text-xl font-semibold mb-4 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-gray-700"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 Buscar Viaje
             </h2>
-            <div id="search-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div id="search-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div>
                     <label for="search-by" class="block text-sm font-medium text-gray-700 mb-1">Buscar por</label>
                     <select id="search-by" name="search-by" class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
@@ -50,11 +63,11 @@
                         <option value="OTM">OTM</option>
                     </select>
                 </div>
-                <div>
-                    <label for="search-value" class="block text-sm font-medium text-gray-700 mb-1">Criterio de Busqueda</label>
+                <div class="md:col-span-1">
+                    <label for="search-value" class="block text-sm font-medium text-gray-700 mb-1">Criterio de Búsqueda</label>
                     <input type="text" id="search-value" name="search-value" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="Ingrese el valor a buscar...">
                 </div>
-                <button id="search-button" class="w-full md:w-auto flex justify-center items-center bg-blue-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:bg-blue-700">
+                <button id="search-button" class="w-full md:w-auto flex justify-center items-center bg-blue-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:bg-blue-700 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     Buscar
                     <div id="search-btn-loader" class="loader ml-2 hidden"></div>
@@ -63,7 +76,10 @@
             <div id="search-feedback" class="mt-4 text-center"></div>
         </section>
 
+        <!-- Contenedor para Información de Viaje y Formulario de Registro -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+            
+            <!-- Panel de Información de Viaje -->
             <div id="tripInfoSection" class="lg:col-span-2 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200">
                 <h2 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-blue-600"><path d="M19 18h-2a4 4 0 0 0-4-4h-2a4 4 0 0 0-4 4H5"/><path d="M5 18v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="m21.44 11.05-1.28-1.27a1 1 0 0 0-1.42 0l-9.19 9.19a1 1 0 0 0 0 1.41l1.28 1.28a1 1 0 0 0 1.41 0l9.2-9.19a1 1 0 0 0 0-1.42Z"/></svg>
@@ -75,7 +91,7 @@
                     <div class="info-item"><p class="text-sm font-medium text-gray-500">Empresa de Transporte</p><p id="info-transporte" class="text-md font-semibold text-gray-900">-</p></div>
                 </div>
                 <div id="trip-info-placeholder" class="text-center py-8 text-gray-500">
-                    <p>Busque y seleccione un viaje para ver su información.</p>
+                    <p>Busque un viaje para ver su información.</p>
                 </div>
                 <div id="trip-info-loader" class="flex justify-center items-center py-4 hidden">
                     <div class="loader"></div>
@@ -83,6 +99,7 @@
                 </div>
             </div>
 
+            <!-- Formulario para Registrar Atención -->
             <fieldset id="attention-fieldset" class="lg:col-span-3 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200" disabled>
                  <h2 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-green-600"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -126,7 +143,7 @@
                         <textarea id="detalle" name="detalle" rows="4" class="w-full p-2 border border-gray-300 rounded-md shadow-sm"></textarea>
                     </div>
                     <div>
-                        <button type="submit" id="submit-attention" class="w-full flex justify-center items-center bg-green-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:bg-green-700">
+                        <button type="submit" id="submit-attention" class="w-full flex justify-center items-center bg-green-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:bg-green-700 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             <span id="submit-btn-text">Registrar</span>
                             <div id="submit-btn-loader" class="loader ml-2 hidden"></div>
@@ -137,6 +154,7 @@
             </fieldset>
         </div>
 
+        <!-- Sección de Historial de Atención -->
         <section id="historySection" class="bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200 hidden">
              <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
                 <h2 class="text-xl font-semibold flex items-center">
@@ -175,18 +193,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // =================================================================================
-            // CONFIGURACIÓN
+            // CONFIGURACIÓN Y CONSTANTES
             // =================================================================================
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqqa4JkgYO5FYdDtKphN46cSpsDWod0wV0Gw0ADBFnnqg9nfwZTO3HCSPe71xEQXiPGQ/exec';
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIIctcnddpZ_rKt40IJa7mzQ53vnXCnYSx9Q_pZP6Je14PSdaQJsuE0vfJWYqiEMh7TA/exec';
             const TRIPS_SHEET_NAME = 'BDviajes';
             const HISTORY_READ_SHEET_NAME = 'Historial';
-            const HISTORY_WRITE_SHEET_NAME = 'RegistroAtencion';
 
+            // Definición de la estructura de columnas para cada hoja de cálculo
             const COLUMNS = {
                 TRIPS: {
                     TIPO_VIAJE: 0, N_VIAJE: 1, ET: 2, PLACA: 3, FECHA_SALIDA: 4, SOCIEDAD: 5, DESTINO_VIAJE: 6
                 },
-                HISTORY: {
+                HISTORY: { // Estructura para la tabla de visualización (hoja 'Historial')
                     FEC_REGISTRO: 0,
                     TIP_VIAJE: 1,
                     NO_VIAJE: 2,
@@ -214,7 +232,6 @@
                   tripInfoContent = document.getElementById('trip-info-content'),
                   infoFechaSalida = document.getElementById('info-fecha-salida'),
                   infoPlaca = document.getElementById('info-placa'), infoTransporte = document.getElementById('info-transporte'),
-                  infoDestinoViaje = document.getElementById('info-destino-viaje'), 
                   tripInfoPlaceholder = document.getElementById('trip-info-placeholder'), 
                   tripInfoLoader = document.getElementById('trip-info-loader'),
                   attentionFieldset = document.getElementById('attention-fieldset'), attentionForm = document.getElementById('attention-form'),
@@ -227,6 +244,8 @@
             // =================================================================================
             // FUNCIONES DE AYUDA (Helpers)
             // =================================================================================
+            
+            /** Muestra mensajes de feedback al usuario (cargando, éxito, error) */
             function showFeedback(message, type = 'info', element = searchFeedback, duration = 5000) {
                 const colorClasses = { info: 'text-gray-500', success: 'text-green-600 font-semibold', error: 'text-red-500 font-semibold' };
                 let content = type === 'loading'
@@ -239,11 +258,13 @@
                 }
             }
 
+            /** Activa o desactiva el estado de carga de un botón */
             function setButtonLoading(button, loader, isLoading) {
                 button.disabled = isLoading;
                 loader.classList.toggle('hidden', !isLoading);
             }
 
+            /** Convierte una cadena de fecha en formato 'dd/mm/yy hh:mm' a un objeto Date */
             function parseCustomDate(dateString) {
                 if (!dateString || typeof dateString !== 'string') return null;
                 const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{2,4})\s(\d{2}):(\d{2})/);
@@ -255,6 +276,7 @@
                 return new Date(year, parts[2] - 1, parts[1], parts[4], parts[5]);
             }
 
+            /** Formatea una fecha para mostrarla en la tabla de historial */
             function formatDisplayDate(dateString) {
                 if (!dateString) return '-';
                 const date = parseCustomDate(dateString);
@@ -270,8 +292,10 @@
             }
 
             // =================================================================================
-            // LÓGICA DE DATOS PRINCIPAL
+            // LÓGICA DE DATOS PRINCIPAL (Interacción con Google Apps Script)
             // =================================================================================
+
+            /** Función genérica para obtener datos de una hoja de cálculo */
             async function fetchSheetData(sheetName, params = {}) {
                 const urlParams = new URLSearchParams({ sheetName, ...params });
                 try {
@@ -286,6 +310,7 @@
                 }
             }
 
+            /** Busca la información del viaje y su historial asociado */
             async function findTripAndHistory(searchByKey, searchValue, tripType) {
                 if (searchByKey === 'n_viaje') {
                     const [tripResult, historyResult] = await Promise.all([
@@ -314,6 +339,8 @@
             // =================================================================================
             // MANIPULACIÓN DE LA INTERFAZ (UI)
             // =================================================================================
+
+            /** Reinicia la interfaz a su estado inicial */
             function resetUI() {
                 currentTrip = null;
                 attentionForm.reset();
@@ -325,25 +352,26 @@
                 [searchFeedback, formFeedback].forEach(el => { el.classList.add('hidden'); el.innerHTML = ''; });
             }
 
+            /** Actualiza el panel de información del viaje con los datos obtenidos */
             function updateTripInfoPanel(tripObject) {
                 tripInfoLoader.classList.add('hidden');
                 tripInfoPlaceholder.classList.add('hidden');
                 tripInfoContent.classList.remove('hidden');
 
                 if (tripObject && tripObject.fecha_salida) {
-                    const formattedDate = new Date(tripObject.fecha_salida).toLocaleDateString('es-ES');
+                     const date = new Date(tripObject.fecha_salida);
+                     const formattedDate = isNaN(date) ? tripObject.fecha_salida : date.toLocaleDateString('es-ES', { timeZone: 'UTC' });
                     infoFechaSalida.textContent = formattedDate;
                     infoPlaca.textContent = tripObject.placa || '-';
                     infoTransporte.textContent = tripObject.et || '-';
-                    infoDestinoViaje.textContent = tripObject.destino_viaje || '-';
                 } else {
                     infoFechaSalida.textContent = '-';
                     infoPlaca.textContent = '-';
                     infoTransporte.textContent = '-';
-                    infoDestinoViaje.textContent = '-';
                 }
             }
 
+            /** Actualiza la tabla de historial con los datos obtenidos */
             function updateHistoryPanel(historyArray) {
                 historyLoader.classList.add('hidden');
                 historyTableBody.innerHTML = '';
@@ -376,6 +404,7 @@
                 }
             }
             
+            /** Convierte un array de datos de viaje en un objeto más manejable */
             function arrayToTripObject(tripArray) {
                 if (!tripArray || tripArray.length === 0) return null;
                 const C = COLUMNS.TRIPS;
@@ -389,6 +418,8 @@
             // =================================================================================
             // MANEJADORES DE EVENTOS
             // =================================================================================
+
+            /** Se ejecuta al hacer clic en el botón de buscar */
             async function handleSearchClick() {
                 const searchByKey = searchBySelect.value;
                 const searchValue = searchValueInput.value.trim();
@@ -411,9 +442,8 @@
                     
                     updateTripInfoPanel(currentTrip);
                     updateHistoryPanel(historyData);
-                    attentionFieldset.disabled = !currentTrip;
+                    attentionFieldset.disabled = false;
 
-                    // CAMBIO: Se reinicia el valor del textarea a la plantilla por defecto cuando se habilita el formulario.
                     if (!attentionFieldset.disabled) {
                         detalleTextarea.value = `Comentario:\nN° Factura:\nN° Pedido:\nN° Entrega:`;
                         detalleTextarea.classList.add('text-gray-400');
@@ -423,7 +453,7 @@
                     if (tripData || historyData.length > 0) {
                         showFeedback('Búsqueda completada.', 'success', searchFeedback);
                     } else {
-                        showFeedback('No se encontraron resultados.', 'info', searchFeedback);
+                        showFeedback('No se encontraron resultados, pero puede registrar una nueva atención.', 'info', searchFeedback);
                     }
                 } catch (error) {
                     showFeedback(`Error en la búsqueda: ${error.message}`, 'error', searchFeedback);
@@ -435,6 +465,7 @@
                 }
             }
 
+            /** Se ejecuta al enviar el formulario de registro de atención */
             async function handleFormSubmit(event) {
                 event.preventDefault();
                 if (!currentTrip) { return showFeedback('Debe haber un viaje activo para registrar una atención.', 'error', formFeedback); }
@@ -447,7 +478,7 @@
                     action: 'addAttention',
                     fecha_registro: new Date().toISOString(),
                     ...Object.fromEntries(formData.entries()),
-                    estado: 'Abierto', // Se añade el estado por defecto
+                    estado: 'Abierto',
                     n_viaje: currentTrip.n_viaje,
                     tip_viaje: currentTrip.tipo_viaje,
                     et: currentTrip.et || '',
@@ -470,8 +501,8 @@
                     detalleTextarea.classList.add('text-gray-400');
                     detalleTextarea.classList.remove('text-gray-800');
 
-
                     historyLoader.classList.remove('hidden');
+                    // Vuelve a cargar el historial para mostrar el nuevo registro
                     const newHistory = await fetchSheetData(HISTORY_READ_SHEET_NAME, { queryType: 'n_viaje', searchValue: currentTrip.n_viaje, tipViaje: currentTrip.tipo_viaje });
                     updateHistoryPanel(newHistory);
                 } catch (err) {
@@ -482,9 +513,11 @@
                 }
             }
 
+            // Asignación de los manejadores de eventos a los elementos del DOM
             searchButton.addEventListener('click', handleSearchClick);
             attentionForm.addEventListener('submit', handleFormSubmit);
 
+            // Lógica para el texto de placeholder en el área de detalle
             const defaultDetalleText = `Comentario:\nN° Factura:\nN° Pedido:\nN° Entrega:`;
             detalleTextarea.value = defaultDetalleText;
             detalleTextarea.classList.add('text-gray-400');
@@ -504,9 +537,8 @@
                     detalleTextarea.classList.remove('text-gray-800');
                 }
             });
-
         });
     </script>
-    </div>
 </body>
 </html>
+
